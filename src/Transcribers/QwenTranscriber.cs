@@ -23,8 +23,21 @@ public class QwenTranscriber : IDisposable
 
     public async Task InitAsync()
     {
+        await _lock.WaitAsync();
+        try
+        {
+            await InitAsyncInternal();
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private async Task InitAsyncInternal()
+    {
         // 释放旧进程
-        DisposeProcess();
+        DisposeProcessInternal();
 
         // 确保 asr/ 脚本文件存在（首次运行自动从嵌入源码写出）
         AsrScripts.EnsureFiles(PythonExe);
@@ -174,6 +187,15 @@ public class QwenTranscriber : IDisposable
     private void DisposeProcess()
     {
         if (_process == null) return;
+        lock (_lock)
+        {
+            DisposeProcessInternal();
+        }
+    }
+
+    private void DisposeProcessInternal()
+    {
+        if (_process == null) return;
         try
         {
             if (!_process.HasExited)
@@ -190,7 +212,7 @@ public class QwenTranscriber : IDisposable
 
     public void Dispose()
     {
-        DisposeProcess();
+        DisposeProcessInternal();
         _lock.Dispose();
     }
 }

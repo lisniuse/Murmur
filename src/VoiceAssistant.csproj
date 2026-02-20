@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -23,6 +23,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishDir>../output/prd/</PublishDir>
     <DebugType>none</DebugType>
+    <DefineConstants>$(DefineConstants);PRODUCTION</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

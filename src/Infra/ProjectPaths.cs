@@ -16,13 +16,15 @@ internal static class ProjectPaths
 
     private static string FindRoot()
     {
-        // 单文件发布：EXE 同目录下有 models/ 则直接使用，
+#if PRODUCTION
+        // 生产环境（dotnet publish -c Release）：直接使用 EXE 所在目录
         // 不能用 BaseDirectory（单文件解压时指向临时目录）
         var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
-        if (Directory.Exists(Path.Combine(exeDir, "models")))
+        if (exeDir.Length > 0)
             return exeDir;
-
-        // 开发模式：向上查找含 src/ 或 models/ 的目录
+        return AppDomain.CurrentDomain.BaseDirectory;
+#else
+        // 开发模式（Debug）：向上查找含 src/ 或 models/ 的目录
         var dir = AppDomain.CurrentDomain.BaseDirectory;
         for (int i = 0; i < 8; i++)
         {
@@ -34,7 +36,9 @@ internal static class ProjectPaths
             dir = parent;
         }
 
-        // 兜底：EXE 同目录（models/ 会自动创建）
+        // 兜底：使用 EXE 所在目录
+        var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? string.Empty;
         return exeDir.Length > 0 ? exeDir : AppDomain.CurrentDomain.BaseDirectory;
+#endif
     }
 }
