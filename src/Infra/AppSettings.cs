@@ -6,7 +6,7 @@ public class AppSettings
 {
     public string WakeWord { get; set; } = "小助手";
     public string InputWakeWord { get; set; } = "小助手帮我输入";
-    public string Command { get; set; } = ""; // 唤醒后执行的命令，{content} 会被替换为识别内容
+    public string Command { get; set; } = "opencode run {content}"; // 唤醒后执行的命令，{content} 会被替换为识别内容
     // "Whisper" / "SystemSpeech" / "Qwen"
     public string RecognitionMode { get; set; } = "SystemSpeech";
     // Whisper 模型大小："tiny" / "base" / "small"
