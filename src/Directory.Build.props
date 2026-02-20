@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- 将编译中间产物和 bin 统一放在 output/ 下，保持源码目录干净 -->
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\output\obj\</BaseIntermediateOutputPath>
+    <!-- NuGet 还原文件（project.assets.json 等）也放到同一目录 -->
+    <MSBuildProjectExtensionsPath>$(MSBuildThisFileDirectory)..\output\obj\</MSBuildProjectExtensionsPath>
+  </PropertyGroup>
+</Project>

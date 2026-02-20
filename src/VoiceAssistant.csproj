@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Debug 直接输出到 output/debug/，方便开发时直接运行 -->
+    <OutputPath Condition="'$(Configuration)'=='Debug'">../output/debug/</OutputPath>
+    <!-- Release build 中间产物放 output/bin/，最终由 publish 步骤输出到 output/prd/ -->
+    <OutputPath Condition="'$(Configuration)'=='Release'">../output/bin/</OutputPath>
+    <AppendTargetFrameworkToOutputPath Condition="'$(Configuration)'=='Debug'">false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <!-- 发布为单文件 EXE（dotnet publish -c Release）
+       框架依赖模式：目标机器需安装 .NET 9，但 EXE 文件干净小巧。
+       Whisper 原生库（whisper.dll）无法嵌入 EXE，会留在同目录 runtimes/ 下。 -->
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishDir>../output/prd/</PublishDir>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="System.Speech" Version="10.0.3" />
+    <PackageReference Include="Whisper.net" Version="1.9.0" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.0" />
+  </ItemGroup>
+
+<!-- 发布后清理：删除非 win-x64 的 Whisper 原生库，以及 pdb 符号文件 -->
+  <Target Name="CleanupPublish" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)runtimes\win-x86" />
+    <RemoveDir Directories="$(PublishDir)runtimes\win-arm64" />
+    <Delete Files="$(PublishDir)$(AssemblyName).pdb" />
+  </Target>
+
+</Project>

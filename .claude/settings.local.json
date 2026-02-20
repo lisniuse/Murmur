@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet --version:*)",
+      "Bash(winget install:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dir:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet run:*)",
+      "Bash(taskkill:*)",
+      "Bash(wmic process where \"name=''VoiceAssistant.exe''\" get ProcessId)",
+      "Bash(powershell -Command \"Stop-Process -Name VoiceAssistant -Force -ErrorAction SilentlyContinue; Write-Host ''done''\")",
+      "Bash(powershell -Command \"Stop-Process -Name VoiceAssistant -Force -ErrorAction SilentlyContinue\")",
+      "Bash(powershell -Command \"Stop-Process -Name VoiceAssistant -Force -ErrorAction SilentlyContinue; Start-Sleep 1; Set-Location ''D:/dev/test/jws-test''; dotnet build 2>&1\")",
+      "WebSearch",
+      "Bash(powershell -Command:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(handle64.exe:*)"
+    ]
+  }
+}
