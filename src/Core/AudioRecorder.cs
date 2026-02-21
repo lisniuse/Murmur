@@ -17,13 +17,26 @@ public class AudioRecorder
     private const int    MaxDurationMs     = 20000; // 最长录制 20s
     private const int    MinSpeechMs       = 300;  // 至少 300ms 说话才开始检测静音
 
-    public async Task<MemoryStream> RecordUntilSilenceAsync(CancellationToken ct = default)
+    /// <summary>
+    /// 根据设备名称解析 NAudio 设备号（找不到则返回 0 = 系统默认）
+    /// </summary>
+    public static int ResolveDeviceNumber(string deviceName)
+    {
+        if (string.IsNullOrEmpty(deviceName)) return 0;
+        for (int i = 0; i < WaveIn.DeviceCount; i++)
+            if (WaveIn.GetCapabilities(i).ProductName == deviceName)
+                return i;
+        return 0;
+    }
+
+    public async Task<MemoryStream> RecordUntilSilenceAsync(int deviceNumber = 0, CancellationToken ct = default)
     {
         var outputMs = new MemoryStream();
         var waveIn = new WaveInEvent
         {
             WaveFormat = new WaveFormat(SampleRate, 16, Channels),
-            BufferMilliseconds = 100
+            BufferMilliseconds = 100,
+            DeviceNumber = deviceNumber
         };
 
         var writer = new WaveFileWriter(outputMs, waveIn.WaveFormat);

@@ -15,6 +15,8 @@ public class AppSettings
     public string PythonPath { get; set; } = @"D:\dev\tools\python\bin\python.bat";
     // 模型存放目录，留空则自动使用 EXE 同目录下的 models/
     public string ModelsPath { get; set; } = "";
+    // 麦克风设备名，留空则使用系统默认
+    public string MicrophoneDeviceName { get; set; } = "";
 
     private static readonly string SettingsPath = ProjectPaths.Settings;
 

@@ -1,3 +1,5 @@
+using NAudio.Wave;
+
 namespace VoiceAssistant;
 
 public class SettingsForm : Form
@@ -12,13 +14,14 @@ public class SettingsForm : Form
     private readonly ComboBox _modelBox;
     private readonly TextBox _pythonPathBox;
     private readonly TextBox _modelsPathBox;
+    private readonly ComboBox _micDeviceBox;
 
     public SettingsForm(AppSettings settings)
     {
         _settings = settings;
 
         Text = "语音助手 - 设置";
-        Size = new Size(420, 584);
+        Size = new Size(420, 648);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -75,11 +78,41 @@ public class SettingsForm : Form
         Add(modelsPathBtn);
         AddHint("留空则自动使用 EXE 同目录下的 models/ 文件夹", x, 273);
 
+        // 麦克风设备
+        Add(new Label { Text = "麦克风设备：", Location = new Point(x, 290), AutoSize = true });
+        _micDeviceBox = new ComboBox
+        {
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Location      = new Point(x, 308),
+            Width         = w - 86
+        };
+        _micDeviceBox.Items.Add("默认（系统）");
+        for (int i = 0; i < WaveIn.DeviceCount; i++)
+            _micDeviceBox.Items.Add(WaveIn.GetCapabilities(i).ProductName);
+        // 还原已保存的设备选择
+        {
+            int idx = 0;
+            if (!string.IsNullOrEmpty(_settings.MicrophoneDeviceName))
+                for (int i = 0; i < WaveIn.DeviceCount; i++)
+                    if (WaveIn.GetCapabilities(i).ProductName == _settings.MicrophoneDeviceName)
+                    { idx = i + 1; break; }
+            _micDeviceBox.SelectedIndex = idx;
+        }
+        Add(_micDeviceBox);
+        var testMicBtn = new Button { Text = "测试", Location = new Point(x + w - 80, 307), Width = 75 };
+        testMicBtn.Click += (_, _) =>
+        {
+            int devNum = _micDeviceBox.SelectedIndex <= 0 ? 0 : _micDeviceBox.SelectedIndex - 1;
+            using var dlg = new MicTestForm(devNum);
+            dlg.ShowDialog(this);
+        };
+        Add(testMicBtn);
+
         // 识别引擎选择
         var engineGroup = new GroupBox
         {
             Text     = "语音识别引擎",
-            Location = new Point(x, 296),
+            Location = new Point(x, 360),
             Size     = new Size(w, 192)
         };
 
@@ -156,8 +189,8 @@ public class SettingsForm : Form
         Add(engineGroup);
 
         // 按钮
-        var saveBtn   = new Button { Text = "保存", Location = new Point(200, 512), Width = 85, DialogResult = DialogResult.OK };
-        var cancelBtn = new Button { Text = "取消", Location = new Point(300, 512), Width = 85, DialogResult = DialogResult.Cancel };
+        var saveBtn   = new Button { Text = "保存", Location = new Point(200, 576), Width = 85, DialogResult = DialogResult.OK };
+        var cancelBtn = new Button { Text = "取消", Location = new Point(300, 576), Width = 85, DialogResult = DialogResult.Cancel };
         saveBtn.Click += OnSave;
         Add(saveBtn);
         Add(cancelBtn);
@@ -203,6 +236,9 @@ public class SettingsForm : Form
         };
         _settings.PythonPath  = _pythonPathBox.Text.Trim();
         _settings.ModelsPath  = _modelsPathBox.Text.Trim();
+        _settings.MicrophoneDeviceName = _micDeviceBox.SelectedIndex <= 0
+            ? ""
+            : _micDeviceBox.Items[_micDeviceBox.SelectedIndex]?.ToString() ?? "";
         _settings.Save();
     }
 }

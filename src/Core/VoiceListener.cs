@@ -192,8 +192,9 @@ public class VoiceListener : IDisposable
             else if (_settings.RecognitionMode == "Qwen")
             {
                 OnStatus?.Invoke("录音中，请说话...");
+                var devNum = AudioRecorder.ResolveDeviceNumber(_settings.MicrophoneDeviceName);
                 var swRec = System.Diagnostics.Stopwatch.StartNew();
-                using var wavStream = await _recorder.RecordUntilSilenceAsync();
+                using var wavStream = await _recorder.RecordUntilSilenceAsync(devNum);
                 swRec.Stop();
                 Logger.Log("PERF", "录音时长", $"{swRec.ElapsedMilliseconds}ms");
                 OnStatus?.Invoke("识别中（Qwen3-ASR）...");
@@ -203,7 +204,8 @@ public class VoiceListener : IDisposable
             {
                 // 默认 Whisper
                 OnStatus?.Invoke("录音中，请说话...");
-                using var wavStream = await _recorder.RecordUntilSilenceAsync();
+                var devNum = AudioRecorder.ResolveDeviceNumber(_settings.MicrophoneDeviceName);
+                using var wavStream = await _recorder.RecordUntilSilenceAsync(devNum);
                 OnStatus?.Invoke("识别中（Whisper）...");
                 text = await _transcriber.TranscribeAsync(wavStream);
             }
