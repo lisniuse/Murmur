@@ -16,7 +16,8 @@
       "WebSearch",
       "Bash(powershell -Command:*)",
       "Bash(dotnet publish:*)",
-      "Bash(handle64.exe:*)"
+      "Bash(handle64.exe:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

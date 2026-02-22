@@ -169,6 +169,12 @@ public class VoiceListener : IDisposable
     private async void OnWakeWordDetected(object? sender, SpeechRecognizedEventArgs e)
     {
         if (_processing) return;
+
+        // 置信度低于阈值时忽略，避免误触发
+        const float ConfidenceThreshold = 0.85f;
+        Logger.Log("WAKE", "置信度", $"{e.Result.Confidence:F2} / 词: {e.Result.Text}");
+        if (e.Result.Confidence < ConfidenceThreshold) return;
+
         _processing = true;
 
         var word = e.Result.Text.Trim();
