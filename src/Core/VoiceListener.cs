@@ -20,9 +20,10 @@ public class VoiceListener : IDisposable
     private string[] _inputWakeWords = ["小助手帮我输入"];
     private AppSettings _settings = new();
 
-    private bool _processing = false;
-    private bool _paused     = false;
-    private bool _ready      = false;
+    private bool _processing  = false;
+    private bool _paused      = false;
+    private bool _ready       = false;
+    private bool _modelReady  = false; // 识别模型已就绪（SystemSpeech 模式始终为 true）
 
     public bool IsPaused => _paused;
     public bool IsReady  => _ready;
@@ -61,6 +62,12 @@ public class VoiceListener : IDisposable
         _wakeWords = Parse(settings.WakeWord);
         _inputWakeWords = Parse(settings.InputWakeWord);
 
+        // 唤醒引擎（System.Speech）与识别模型完全独立，先启动唤醒监听
+        // 避免等待模型加载（30~50 秒）期间用户无响应
+        // 注意：_ready 保持 false，让加载中的状态消息仍能显示在菜单状态项里
+        _modelReady = settings.RecognitionMode == "SystemSpeech";
+        StartWakeEngine();
+
         if (settings.RecognitionMode == "Whisper")
         {
             try
@@ -88,7 +95,7 @@ public class VoiceListener : IDisposable
         }
 
         _ready = true;
-        StartWakeEngine();
+        _modelReady = true;
     }
 
     public async Task ReloadAsync(AppSettings settings)
@@ -106,6 +113,7 @@ public class VoiceListener : IDisposable
         if (settings.RecognitionMode == "Whisper" &&
             (oldMode != "Whisper" || oldModel != settings.WhisperModel))
         {
+            _modelReady = false;
             try
             {
                 await _transcriber.InitAsync(settings.WhisperModel);
@@ -126,6 +134,7 @@ public class VoiceListener : IDisposable
             _qwen.PythonExe = settings.PythonPath;
             if (needReinit)
             {
+                _modelReady = false;
                 try
                 {
                     await _qwen.InitAsync();
@@ -138,6 +147,7 @@ public class VoiceListener : IDisposable
             }
         }
 
+        _modelReady = true;
         StartWakeEngine();
     }
 
@@ -174,6 +184,13 @@ public class VoiceListener : IDisposable
         const float ConfidenceThreshold = 0.85f;
         Logger.Log("WAKE", "置信度", $"{e.Result.Confidence:F2} / 词: {e.Result.Text}");
         if (e.Result.Confidence < ConfidenceThreshold) return;
+
+        // 识别模型尚未就绪（仍在加载中），提示用户稍后再试
+        if (!_modelReady)
+        {
+            OnStatus?.Invoke("识别模型加载中，请稍候...");
+            return;
+        }
 
         _processing = true;
 
